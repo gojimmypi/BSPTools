@@ -54,10 +54,12 @@ class Memory(object):
 
 
 class Memories(object):
-    __memories = []
-    __ram_size = 0
-    __flash_size = 0
-    __valid = False
+
+    def __init__(self):
+        self.__memories = []
+        self.__ram_size = 0
+        self.__flash_size = 0
+        self.__valid = False
 
     def add_memory(self, mem):
         self.__memories.append(mem)
@@ -125,7 +127,8 @@ class InfoProvider(object):
 
         return memories
 
-    def get_mem_sizes_mbed(self, target):
+    @staticmethod
+    def get_mem_sizes_mbed(target):
         try:
             ram_regexp = re.compile('.*RAM.*')
             rom_regexp = re.compile('.*ROM.*')
@@ -258,9 +261,9 @@ def parse_linker_script(lds_file):
                     if mem_size == 0:
                         print('Warning: Zero size of the memory in the linker script')
                         continue
-                    if 'RAM' in mem_name:
+                    if 'ram' in mem_name.lower():
                         memories.add_memory(Memory(mem_name, Memory.RAM, mem_start, mem_size))
-                    elif 'FLASH' in mem_name:
+                    elif 'flash' in mem_name.lower():
                         memories.add_memory(Memory(mem_name, Memory.FLASH, mem_start, mem_size))
                     else:
                         print('Warning: Unknown type of the memory')
@@ -511,8 +514,8 @@ def main(argv):
         if not memories.valid():
             raise Exception('FLASH and\or RAM size is invalid')
 
-        mcu.append(make_node("RAMSize", memories.get_ram_size()))
-        mcu.append(make_node("FLASHSize", memories.get_flash_size()))
+        mcu.append(make_node("RAMSize", str(memories.get_ram_size())))
+        mcu.append(make_node("FLASHSize", str(memories.get_flash_size())))
 
         mem_list = ElementTree.SubElement(ElementTree.SubElement(mcu, "MemoryMap"), "Memories")
         for mem in memories.get_memories():

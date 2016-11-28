@@ -267,5 +267,292 @@
 		},
 		"ram_size": 32768,
 		"flash_size": 262144
+    },
+    "LPC1549":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 262144
+			},
+			"Ram0_16": {
+				"type": "RAM",
+				"start": 33554688,
+				"size": 16128
+			},
+			"Ram1_16": {
+				"type": "RAM",
+				"start": 33570816,
+				"size": 16384
+			},
+			"Ram2_4": {
+				"type": "RAM",
+				"start": 33587200,
+				"size": 4096
+			}
+		},
+		"ram_size": 36608,
+		"flash_size": 262144
+    },
+    "RBLAB_BLENANO":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "NRF51_MICROBIT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 98304,
+				"size": 163840
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536879104,
+				"size": 8192
+			}
+		},
+		"ram_size": 8192,
+		"flash_size": 163840
+    },
+    "WALLBOT_BLE":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "NUCLEO_F756ZG":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 134217728,
+				"size": 1048576
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536871368,
+				"size": 327224
+			}
+		},
+		"ram_size": 327224,
+		"flash_size": 1048576
+    },
+    "KL82Z":
+	{
+		"memories": {
+			"m_interrupts": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 320
+			},
+			"m_bootloader_config": {
+				"type": "FLASH",
+				"start": 960,
+				"size": 64
+			},
+			"m_flash_config": {
+				"type": "FLASH",
+				"start": 1024,
+				"size": 16
+			},
+			"m_text": {
+				"type": "FLASH",
+				"start": 1040,
+				"size": 130032
+			},
+			"m_data": {
+				"type": "RAM",
+				"start": 536846336,
+				"size": 98304
+			},
+			"m_usb_sram": {
+				"type": "RAM",
+				"start": 1074790400,
+				"size": 2048
+			}
+		},
+		"ram_size": 100352,
+		"flash_size": 130432
+    },
+    "NRF51_DONGLE":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 110592,
+				"size": 151552
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536882936,
+				"size": 20744
+			}
+		},
+		"ram_size": 20744,
+		"flash_size": 151552
+    },
+    "K82F":
+	{
+		"memories": {
+			"m_interrupts": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 960
+			},
+			"m_bootloader_config": {
+				"type": "FLASH",
+				"start": 960,
+				"size": 64
+			},
+			"m_flash_config": {
+				"type": "FLASH",
+				"start": 1024,
+				"size": 16
+			},
+			"m_text": {
+				"type": "FLASH",
+				"start": 1040,
+				"size": 261104
+			},
+			"m_data": {
+				"type": "RAM",
+				"start": 536805376,
+				"size": 65536
+			},
+			"m_data_2": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 196608
+			}
+		},
+		"ram_size": 262144,
+		"flash_size": 262144
+    },
+    "NRF51_MICROBIT_B":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "MAX32625NEXPAQ":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 65536,
+				"size": 458752
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536883456,
+				"size": 151296
+			}
+		},
+		"ram_size": 151296,
+		"flash_size": 458752
+    },
+    "SSCI824":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 32768
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 268435648,
+				"size": 8000
+			}
+		},
+		"ram_size": 8000,
+		"flash_size": 32768
+    },
+    "MAX32625MBED":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 524288
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 163840
+			}
+		},
+		"ram_size": 163840,
+		"flash_size": 524288
+    },
+    "SARA_NBIOT_EVK":
+	{
+		"memories": {
+			"FLASH_VECTORS": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 192
+			},
+			"FLASH": {
+				"type": "FLASH",
+				"start": 192,
+				"size": 130880
+			},
+			"RAM_VECTORS": {
+				"type": "RAM",
+				"start": 0,
+				"size": 128
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 16777344,
+				"size": 20224
+			},
+			"IPC_MAILBOX": {
+				"type": "RAM",
+				"start": 16756864,
+				"size": 256
+			}
+		},
+		"ram_size": 20608,
+		"flash_size": 131072
     }
+
 }
