@@ -1,0 +1,271 @@
+{
+	"RZ_A1H":
+	{
+		"memories": {
+			"ROM": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 33554432
+			},
+			"BOOT_LOADER": {
+				"type": "FLASH",
+				"start": 402653184,
+				"size": 16384
+			},
+			"SFLASH": {
+				"type": "FLASH",
+				"start": 402669568,
+				"size": 134201344
+			},
+			"L_TTB": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 16384
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 537001984,
+				"size": 7340032
+			},
+			"RAM_NC": {
+				"type": "RAM",
+				"start": 546308096,
+				"size": 1048576
+			}
+		},
+		"ram_size": 8388608,
+		"flash_size": 167772160
+    },
+    "DISCO_L476VG":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 134217728,
+				"size": 1048576
+			},
+			"SRAM2": {
+				"type": "RAM",
+				"start": 268435848,
+				"size": 32376
+			},
+			"SRAM1": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 98304
+			}
+		},
+		"ram_size": 130680,
+		"flash_size": 1048576
+    },
+    "XDOT_L151CC":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 134217728,
+				"size": 262144
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536871228,
+				"size": 32452
+			}
+		},
+		"ram_size": 32452,
+		"flash_size": 262144
+    },
+    "NUCLEO_L486RG":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 134217728,
+				"size": 1048576
+			},
+			"SRAM2": {
+				"type": "RAM",
+				"start": 268435848,
+				"size": 32376
+			},
+			"SRAM1": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 98304
+			}
+		},
+		"ram_size": 130680,
+		"flash_size": 1048576
+    },
+    "MAX32620HSP":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 2097152
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 262144
+			}
+		},
+		"ram_size": 262144,
+		"flash_size": 2097152
+    },
+    "NUCLEO_L476RG":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 134217728,
+				"size": 1048576
+			},
+			"SRAM2": {
+				"type": "RAM",
+				"start": 268435848,
+				"size": 32376
+			},
+			"SRAM1": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 98304
+			}
+		},
+		"ram_size": 130680,
+		"flash_size": 1048576
+    },
+    "NRF51_DONGLE_LEGACY":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 110592,
+				"size": 151552
+			},
+			"SRAM2": {
+				"type": "RAM",
+				"start": 536882936,
+				"size": 20744
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "VK_RZ_A1H":
+	{
+		"memories": {
+			"ROM": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 33554432
+			},
+			"SFLASH_DUAL": {
+				"type": "FLASH",
+				"start": 402784256,
+				"size": 33423360
+			},
+			"L_TTB": {
+				"type": "FLASH",
+				"start": 536870912,
+				"size": 16384
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 537001984,
+				"size": 7340032
+			},
+			"RAM_NC": {
+				"type": "RAM",
+				"start": 546308096,
+				"size": 1048576
+			},
+			"SDRAM": {
+				"type": "RAM",
+				"start": 134217728,
+				"size": 33554432
+			}
+		},
+		"ram_size": 41943040,
+		"flash_size": 66994176
+    },
+    "NCS36510":
+	{
+		"memories": {
+			"VECTORS": {
+				"type": "FLASH",
+				"start": 12288,
+				"size": 144
+			},
+			"FLASH": {
+				"type": "FLASH",
+				"start": 12432,
+				"size": 323440
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 1073692672,
+				"size": 49152
+			}
+		},
+		"ram_size": 49152,
+		"flash_size": 323584
+    },
+    "MAXWSNENV":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 262144
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 32768
+			}
+		},
+		"ram_size": 32768,
+		"flash_size": 262144
+    },
+    "MAX32600MBED":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 262144
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 32768
+			}
+		},
+		"ram_size": 32768,
+		"flash_size": 262144
+    },
+    "ARM_BEETLE_SOC":
+	{
+		"memories": {
+			"VECTORS": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 1024
+			},
+			"FLASH": {
+				"type": "FLASH",
+				"start": 1024,
+				"size": 261120
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 32768
+			}
+		},
+		"ram_size": 32768,
+		"flash_size": 262144
+    }
+}

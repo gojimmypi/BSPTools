@@ -16,6 +16,7 @@ import tools.config
 import tools.libraries
 import tools.project
 import tools.toolchains
+import tools.export.cmsis as cmsis
 from tools.export import EXPORTERS
 from tools.libraries import LIBRARIES
 from tools.paths import MBED_HEADER
@@ -23,6 +24,127 @@ from tools.settings import ROOT
 
 # FILE_ROOT = abspath(join(dirname(tools.project.__file__), ".."))
 # sys.path.insert(0, FILE_ROOT)
+
+GccExporter = EXPORTERS['gcc_arm']
+
+
+class Memory(object):
+    FLASH = 'FLASH'
+    RAM = 'RAM'
+
+    def __init__(self, name, mem_type, start, size):
+        self.__name = name
+        if mem_type != self.FLASH and mem_type != self.RAM:
+            raise Exception('No such memory type: ' + mem_type)
+        self.__type = mem_type
+        self.__start = start
+        self.__size = size
+
+    def get_name(self):
+        return self.__name
+
+    def get_type(self):
+        return self.__type
+
+    def get_start(self):
+        return self.__start
+
+    def get_size(self):
+        return self.__size
+
+
+class Memories(object):
+    __memories = []
+    __ram_size = 0
+    __flash_size = 0
+    __valid = False
+
+    def add_memory(self, mem):
+        self.__memories.append(mem)
+        self.__valid = True
+        if mem.get_type() == Memory.FLASH:
+            self.__flash_size += mem.get_size()
+        else:
+            self.__ram_size += mem.get_size()
+
+    def get_memories(self):
+        return self.__memories
+
+    def get_ram_size(self):
+        return self.__ram_size
+
+    def get_flash_size(self):
+        return self.__flash_size
+
+    def valid(self):
+        return self.__valid
+
+
+class InfoProvider(object):
+    __official_targets = set()
+    __all_targets = set()
+    __sizes_from_linker = None
+
+    def __init__(self):
+        release_targets = {}
+        release_targets_name = {}
+
+        for version in ba.RELEASE_VERSIONS:
+            release_targets[version] = ba.get_mbed_official_release(version)
+            release_targets_name[version] = [x[0] for x in release_targets[version] if 'GCC_ARM' in x[1]]
+
+        merged = set()
+        for version in ba.RELEASE_VERSIONS:
+            merged |= set(release_targets_name[version])
+
+        self.__official_targets = merged
+        self.__all_targets = set(GccExporter.TARGETS)
+
+        with open(os.path.join(script_path, 'sizes_from_linker.json')) as linker_data:
+            self.__sizes_from_linker = json.load(linker_data)
+
+    def get_official_targets(self):
+        return self.__official_targets
+
+    def get_all_targets(self):
+        return self.__all_targets
+
+    def get_mem_sizes_linker(self, target):
+        memories = Memories()
+        if target in self.__sizes_from_linker:
+            ram_size = self.__sizes_from_linker[target]['ram_size']
+            flash_size = self.__sizes_from_linker[target]['flash_size']
+            for mem_name in self.__sizes_from_linker[target]['memories']:
+                mem = self.__sizes_from_linker[target]['memories'][mem_name]
+                if mem['type'] == Memory.RAM:
+                    memories.add_memory(Memory(mem_name, Memory.RAM, int(mem['start']), int(mem['size'])))
+                elif mem['type'] == Memory.FLASH:
+                    memories.add_memory(Memory(mem_name, Memory.FLASH, int(mem['start']), int(mem['size'])))
+                else:
+                    raise Exception('Invalid memory type in the linker sizes cache for the target ' + target)
+
+        return memories
+
+    def get_mem_sizes_mbed(self, target):
+        try:
+            ram_regexp = re.compile('.*RAM.*')
+            rom_regexp = re.compile('.*ROM.*')
+            cmsis_dev = cmsis.DeviceCMSIS(target)
+        except cmsis.TargetNotSupportedException as e:
+            return Memories()
+
+        memories = Memories()
+        for mem_name in cmsis_dev.target_info['memory']:
+            start = int(cmsis_dev.target_info['memory'][mem_name]['start'], 16)
+            size = int(cmsis_dev.target_info['memory'][mem_name]['size'], 16)
+            if ram_regexp.match(mem_name):
+                memories.add_memory(Memory(mem_name, Memory.RAM, start, size))
+            elif rom_regexp.match(mem_name):
+                memories.add_memory(Memory(mem_name, Memory.FLASH, start, size))
+            else:
+                raise Exception('Unknown type of memory')
+
+        return memories
 
 
 class LibraryBuilder(object):
@@ -53,9 +175,6 @@ class LibraryBuilder(object):
             self.SupportedTargets[target] = True
 
 
-Exporter = EXPORTERS['gcc_arm']
-
-
 def make_node(name, text):
     str_node = ElementTree.Element(name)
     str_node.text = text
@@ -74,13 +193,6 @@ def provide_node(el, name):
         n = ElementTree.Element(name)
         el.append(n)
     return n
-
-
-class MemoryDefinition(object):
-    def __init__(self, name, start_address, size):
-        self.Name = name
-        self.Start = start_address
-        self.Size = size
 
 
 def add_file_condition(lib_builder, fw_node, cond_list, file_regex, condition_id, condition_name):
@@ -130,7 +242,7 @@ def parse_linker_script(lds_file):
     inside_memory_block = False
     rg_mem_def = re.compile(' *([^ ]+) *\([^()]+\) *: *ORIGIN *= *([^ ,]+), *LENGTH *= *([^/]*)($|/\\*)')
 
-    result = []
+    memories = Memories()
     with open(lds_file) as f:
         for line in f:
             if not inside_memory_block and line.strip() == "MEMORY":
@@ -140,105 +252,50 @@ def parse_linker_script(lds_file):
             elif inside_memory_block:
                 match = rg_mem_def.match(line)
                 if match is not None:
-                    mem = MemoryDefinition(match.group(1), parse_mem_size(match.group(2)),
-                                           parse_mem_size(match.group(3)))
-                    if mem.Size != 0:
-                        result.append(mem)
-    return result
+                    mem_name = match.group(1)
+                    mem_start = parse_mem_size(match.group(2))
+                    mem_size = parse_mem_size(match.group(3))
+                    if mem_size == 0:
+                        print('Warning: Zero size of the memory in the linker script')
+                        continue
+                    if 'RAM' in mem_name:
+                        memories.add_memory(Memory(mem_name, Memory.RAM, mem_start, mem_size))
+                    elif 'FLASH' in mem_name:
+                        memories.add_memory(Memory(mem_name, Memory.FLASH, mem_start, mem_size))
+                    else:
+                        print('Warning: Unknown type of the memory')
+    return memories
 
 script_path = join(dirname(__file__))
 
-def main():
+
+def dump_targets():
+    mbed_info = InfoProvider()
+
+    root = ElementTree.Element("SupportedTargets")
+    official_targets = ElementTree.SubElement(root, "OfficialTargets")
+    for target in mbed_info.get_official_targets():
+        ElementTree.SubElement(official_targets, "Target").text = target
+
+    official_targets = ElementTree.SubElement(root, "AllTargets")
+    for target in mbed_info.get_all_targets():
+        ElementTree.SubElement(official_targets, "Target").text = target
+
+    tree = ElementTree.ElementTree(root)
+    root_node = minidom.parseString(ElementTree.tostring(tree.getroot()))
+    xml_str = '\n'.join([line for line in root_node.toprettyxml(indent=' ' * 2).split('\n') if line.strip()])
+    with open(join(ROOT, 'available_targets.xml'), 'w') as xml_file:
+        xml_file.write(xml_str.encode('utf-8'))
+
+
+def main(argv):
+    if 'dump_targets' in argv:
+        dump_targets()
+        return
     ignore_targets = {
-        # Not compiled with the mbed-cli
-        'ELEKTOR_COCORICO': 'Wrong target configuration, no \'device_has\' attribute',
-        'KL26Z': 'undefined reference to \'init_data_bss\'',
-        'LPC11U37_501': 'fatal error: device.h: No such file or directory',
-        'LPC11U68': 'multiple definition of \'__aeabi_atexit\'',
-        'SAMG55J19': 'error: \'s\' undeclared here: #define OPTIMIZE_HIGH __attribute__((optimize(s)))',
-        'LPC810': 'region \'FLASH\' overflowed by 2832 bytes',
-        'LPC2368': 'undefined reference to \'__get_PRIMASK\'',
-        'LPC2460': 'undefined reference to \'__get_PRIMASK\'',
-        'MTM_MTCONNECT04S_BOOT': 'fatal error: device.h: No such file or directory',
-        'MTM_MTCONNECT04S_OTA': 'fatal error: device.h: No such file or directory',
-
-        # Hex merge problem targets
-        'NRF51_MICROBIT_BOOT': 'Hex file problem',
-        'ARCH_BLE': 'Hex file problem',
-        'RBLAB_NRF51822': 'Hex file problem',
-        'RBLAB_BLENANO': 'Hex file problem',
-        'NRF51822_BOOT': 'Hex file problem',
-        'NRF51_MICROBIT': 'Hex file problem',
-        'WALLBOT_BLE': 'Hex file problem',
-        'WALLBOT_BLE_OTA': 'Hex file problem',
-        'MTM_MTCONNECT04S': 'Hex file problem',
-        'MTM_MTCONNECT04S_BOOT': 'Hex file problem',
-        'TY51822R3_BOOT': 'Hex file problem',
-        'NRF51822_OTA': 'Hex file problem',
-        'RBLAB_NRF51822_OTA': 'Hex file problem',
-        'NRF51822_Y5_MBUG': 'Hex file problem',
-        'NRF51822': 'Hex file problem',
-        'ARCH_BLE_BOOT': 'Hex file problem',
-        'RBLAB_BLENANO_BOOT': 'Hex file problem',
-        'TY51822R3_OTA': 'Hex file problem',
-        'SEEED_TINY_BLE': 'Hex file problem',
-        'RBLAB_NRF51822_BOOT': 'Hex file problem',
-        'NRF51_DK_LEGACY': 'Hex file problem',
-        'DELTA_DFCM_NNN40_OTA': 'Hex file problem',
-        'TY51822R3': 'Hex file problem',
-        'NRF51_DONGLE_LEGACY': 'Hex file problem',
-        'DELTA_DFBM_NQ620': 'Hex file problem',
-        'WALLBOT_BLE_BOOT': 'Hex file problem',
-        'DELTA_DFCM_NNN40': 'Hex file problem',
-        'SEEED_TINY_BLE_OTA': 'Hex file problem',
-        'ARCH_LINK_OTA': 'Hex file problem',
-        'NRF51_DK_BOOT': 'Hex file problem',
-        'NRF51_DONGLE': 'Hex file problem',
-        'DELTA_DFCM_NNN40_BOOT': 'Hex file problem',
-        'NRF51_MICROBIT_B_OTA': 'Hex file problem',
-        'NRF51_MICROBIT_B_BOOT': 'Hex file problem',
-        'SEEED_TINY_BLE_BOOT': 'Hex file problem',
-        'ARCH_LINK': 'Hex file problem',
-        'NRF51_MICROBIT_B': 'Hex file problem',
-        'NRF51_DK_OTA': 'Hex file problem',
-        'RBLAB_BLENANO_OTA': 'Hex file problem',
-        'ARCH_LINK_BOOT': 'Hex file problem',
-        'ARCH_BLE_OTA': 'Hex file problem',
-        'HRM1017': 'Hex file problem',
-        'NRF52_DK': 'Hex file problem',
-        'NRF51_DONGLE_OTA': 'Hex file problem',
-        'NRF51_DONGLE_BOOT': 'Hex file problem',
-        'NRF51_MICROBIT_OTA': 'Hex file problem',
-        'NRF51_DK': 'Hex file problem',
-        'HRM1017_BOOT': 'Hex file problem',
-        'HRM1017_OTA': 'Hex file problem',
-
-        # LED Blink problem targets
-        'LPC1549': 'error: \'sleep\' was not declared in this scope',
-        'NUMAKER_PFM_M453': 'multiple definition of \'__wrap__sbrk\'',
-        'NUMAKER_PFM_NUC472': 'fatal error: mbedtls/config.h: No such file or directory',
-        'RZ_A1H': 'error: \'sleep\' was not declared in this scope',
-        'VK_RZ_A1H': 'error: \'sleep\' was not declared in this scope',
-
-        # LED Blink RTOS problem targets
-        'KL05Z': 'region \'RAM\' overflowed by 3020 bytes',
-        'EFM32HG_STK3400': 'region RAM overflowed with stack',
-        'VK_RZ_A1H': 'multiple definition of \'eth_arch_enetif_init\'',
-        'LPC812': 'region \'RAM\' overflowed by 3108 bytes',
-        'MAXWSNENV': 'undefined reference to *',
-        'ARM_BEETLE_SOC': 'undefined reference to *',
-
-        # USB Device problem targets
-        'LPC1347': 'region \'RAM\' overflowed by 156 bytes',
-        'MAX32620HSP': 'undefined reference to *',
-        'EFM32HG_STK3400': ' region \'RAM\' overflowed by 516 bytes',
-        'MAXWSNENV': 'undefined reference to *',
-        'KL27Z': 'undefined reference to \'USBHAL\' + region \'m_data\' overflowed by 88 bytes',
-
     }
 
-    with open(os.path.join(script_path, 'linker_data.json')) as linker_data:
-        linker_data = json.load(linker_data)
+    mbed_info = InfoProvider()
 
     source_condition_map = {}
     header_condition_map = {}
@@ -268,7 +325,7 @@ def main():
     family = xml.find("MCUFamilies/MCUFamily")
 
     targets_count = 0
-    for target in Exporter.TARGETS:
+    for target in GccExporter.TARGETS:
         print('\t' + target + '...')
 
         toolchain = ba.prepare_toolchain(ROOT, target, 'GCC_ARM')
@@ -369,9 +426,7 @@ def main():
                 fw.DependencyIDs.add(id)
 
     # Set flags different for each target
-    include_ignored_targets = '--alltargets' in sys.argv
-	
-    for target in Exporter.TARGETS:
+    for target in GccExporter.TARGETS:
         res = resources_map.get(target, None)
         if res is None:
             print('Target ignored: ' + target + ': No resources')
@@ -379,7 +434,7 @@ def main():
         if res.linker_script is None:
             print('Target ignored: ' + target + ': No linker script')
             continue
-        if not include_ignored_targets and target in ignore_targets:
+        if target in ignore_targets:
             print('Target ' + target + ' ignored: ' + ignore_targets[target])
             continue
 
@@ -414,22 +469,22 @@ def main():
                                                                         make_node("InternalValue", '0')])
 
         flags = append_node(mcu, "CompilationFlags")
-        for (node, dict) in [[append_node(mcu, "AdditionalSourceFiles"), source_condition_map],
+        for (node, cond_map) in [[append_node(mcu, "AdditionalSourceFiles"), source_condition_map],
                              [append_node(mcu, "AdditionalHeaderFiles"), header_condition_map],
                              [append_node(flags, "IncludeDirectories"), include_dir_condition_map],
                              [append_node(flags, "PreprocessorMacros"), symbol_condition_map]]:
-            for (filename, targets) in dict.items():
+            for (filename, targets) in cond_map.items():
                 if len(list(set(targets))) < targets_count and target in targets:
                     node.append(make_node("string", filename))
 
-        flagList = res.toolchain.cpu[:]
-        if "-mfloat-abi=softfp" in flagList:
-            flagList.remove("-mfloat-abi=softfp")
-            flagList.append("$$com.sysprogs.bspoptions.arm.floatmode$$")
+        flags_list = res.toolchain.cpu[:]
+        if "-mfloat-abi=softfp" in flags_list:
+            flags_list.remove("-mfloat-abi=softfp")
+            flags_list.append("$$com.sysprogs.bspoptions.arm.floatmode$$")
             prop_node = ElementTree.SubElement(props_list, "PropertyEntry", {"xsi:type": "Enumerated"})
             prop_node.extend([make_node("Name", "Floating point support"),
-                           make_node("UniqueID", "com.sysprogs.bspoptions.arm.floatmode"),
-                           make_node("DefaultEntryIndex", "2")])
+                              make_node("UniqueID", "com.sysprogs.bspoptions.arm.floatmode"),
+                              make_node("DefaultEntryIndex", "2")])
             list_node = ElementTree.SubElement(prop_node, "SuggestionList")
             ElementTree.SubElement(list_node, "Suggestion").extend(
                 [make_node("UserFriendlyName", "Software"), make_node("InternalValue", "-mfloat-abi=soft")])
@@ -441,40 +496,44 @@ def main():
             ElementTree.SubElement(list_node, "Suggestion").extend(
                 [make_node("UserFriendlyName", "Unspecified"), make_node("InternalValue", "")])
 
-        ElementTree.SubElement(flags, "COMMONFLAGS").text = " ".join(flagList)
+        ElementTree.SubElement(flags, "COMMONFLAGS").text = " ".join(flags_list)
         ElementTree.SubElement(flags, "LinkerScript").text = "$$SYS:BSP_ROOT$$/" + res.linker_script
 
-        mems = parse_linker_script(os.path.join(ROOT, res.linker_script))
-        ram_size = str(sum([m.Size for m in mems if ("RAM" in m.Name.upper())]))
-        flash_size = str(sum([m.Size for m in mems if ("FLASH" in m.Name.upper())]))
-        if target in linker_data:
-            ram_size = linker_data[target]['RAM']
-            flash_size = linker_data[target]['FLASH']
-        else:
-            print('No RAM and FLASH size for a target ' + target)
-        mcu.append(make_node("RAMSize", ram_size))
-        mcu.append(make_node("FLASHSize", flash_size))
+        memories = mbed_info.get_mem_sizes_mbed(target)
+        if not memories.valid():
+            print('Warning: No FLASH and RAM size for the ' + target + ' in mbed cache')
+            memories = mbed_info.get_mem_sizes_linker(target)
+        if not memories.valid():
+            print('Warning: No FLASH and RAM size for the ' + target + ' in cached sizes from linker script')
+            if target in mbed_info.get_official_targets():
+                raise Exception('Memory definition for the official targets should be guaranteed correct')
+            memories = parse_linker_script(os.path.join(ROOT, res.linker_script))
+        if not memories.valid():
+            raise Exception('FLASH and\or RAM size is invalid')
+
+        mcu.append(make_node("RAMSize", memories.get_ram_size()))
+        mcu.append(make_node("FLASHSize", memories.get_flash_size()))
 
         mem_list = ElementTree.SubElement(ElementTree.SubElement(mcu, "MemoryMap"), "Memories")
-        for mem in mems:
+        for mem in memories.get_memories():
             mem_el = ElementTree.SubElement(mem_list, "MCUMemory")
-            mem_el.append(make_node("Name", mem.Name))
-            mem_el.append(make_node("Address", str(mem.Start)))
-            mem_el.append(make_node("Size", str(mem.Size)))
-            if mem.Name.upper() == "FLASH":
+            mem_el.append(make_node("Name", mem.get_name()))
+            mem_el.append(make_node("Address", str(mem.get_start())))
+            mem_el.append(make_node("Size", str(mem.get_size())))
+            if mem.get_type() == Memory.FLASH:
                 mem_el.append(make_node("Flags", "IsDefaultFLASH"))
-            if mem.Name.upper() == "RAM":
+            if mem.get_type() == Memory.RAM:
                 mem_el.append(make_node("LoadedFromMemory", "FLASH"))
 
         mcus.append(mcu)
 
     # Set flags shared between targets
     flags = append_node(family, "CompilationFlags")
-    for (node, dict) in [[append_node(family, "AdditionalSourceFiles"), source_condition_map],
-                         [append_node(family, "AdditionalHeaderFiles"), header_condition_map],
-                         [append_node(flags, "IncludeDirectories"), include_dir_condition_map],
-                         [append_node(flags, "PreprocessorMacros"), symbol_condition_map]]:
-        for (filename, targets) in dict.items():
+    for (node, cond_map) in [[append_node(family, "AdditionalSourceFiles"), source_condition_map],
+                             [append_node(family, "AdditionalHeaderFiles"), header_condition_map],
+                             [append_node(flags, "IncludeDirectories"), include_dir_condition_map],
+                             [append_node(flags, "PreprocessorMacros"), symbol_condition_map]]:
+        for (filename, targets) in cond_map.items():
             if len(list(set(targets))) == targets_count:
                 node.append(make_node("string", filename))
 
@@ -563,4 +622,4 @@ def main():
         xml_file.write(xml_str.encode('utf-8'))
 
 
-main()
+main(sys.argv[1:])
