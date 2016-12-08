@@ -1,12 +1,11 @@
-"""
-    This file generates a BSP file that makes VisualGDB recognize the Mbed library and automatically create Visual Studio
-    projects for it
-"""
 import copy
 import json
 import os
 import re
+import argparse
 import sys
+import gc
+import subprocess
 import xml.etree.ElementTree as ElementTree
 from os.path import join, dirname, basename
 from xml.dom import minidom
@@ -39,6 +38,8 @@ class Memory(object):
         self.__type = mem_type
         self.__start = start
         self.__size = size
+        if size == 0:
+            raise Exception(mem_type + ' memory size is 0')
 
     def get_name(self):
         return self.__name
@@ -54,19 +55,20 @@ class Memory(object):
 
 
 class Memories(object):
-
     def __init__(self):
         self.__memories = []
         self.__ram_size = 0
         self.__flash_size = 0
-        self.__valid = False
+        self.__flash_valid = False
+        self.__ram_valid = False
 
     def add_memory(self, mem):
         self.__memories.append(mem)
-        self.__valid = True
         if mem.get_type() == Memory.FLASH:
+            self.__flash_valid = True
             self.__flash_size += mem.get_size()
         else:
+            self.__ram_valid = True
             self.__ram_size += mem.get_size()
 
     def get_memories(self):
@@ -79,7 +81,15 @@ class Memories(object):
         return self.__flash_size
 
     def valid(self):
-        return self.__valid
+        return self.__flash_valid and self.__ram_valid
+
+
+class LinkerParserState:
+    LOOKUP = 1
+    PARSE_SIZE = 2
+
+    def __init__(self):
+        pass
 
 
 class InfoProvider(object):
@@ -87,7 +97,8 @@ class InfoProvider(object):
     __all_targets = set()
     __sizes_from_linker = None
 
-    def __init__(self):
+    def __init__(self, toolchain_bin_path):
+        self.__toolchain_bin_path = toolchain_bin_path
         release_targets = {}
         release_targets_name = {}
 
@@ -111,7 +122,7 @@ class InfoProvider(object):
     def get_all_targets(self):
         return self.__all_targets
 
-    def get_mem_sizes_linker(self, target):
+    def get_mem_sizes_cached(self, target):
         memories = Memories()
         if target in self.__sizes_from_linker:
             ram_size = self.__sizes_from_linker[target]['ram_size']
@@ -127,27 +138,44 @@ class InfoProvider(object):
 
         return memories
 
-    @staticmethod
-    def get_mem_sizes_mbed(target):
-        try:
-            ram_regexp = re.compile('.*RAM.*')
-            rom_regexp = re.compile('.*ROM.*')
-            cmsis_dev = cmsis.DeviceCMSIS(target)
-        except cmsis.TargetNotSupportedException as e:
-            return Memories()
+    def get_mem_sizes_linker(self, linker_script):
+        linker_path = os.path.join(self.__toolchain_bin_path, 'arm-eabi-gcc')
+        null_pipe = open(os.devnull, 'w')
+        args = linker_path + ' -lc -Wl,--defsym=__Vectors=0,--defsym=Stack_Size=0,-Map,temp.map -T \"' + linker_script + '\"'
+        subprocess.call(args, stdout=null_pipe, stderr=null_pipe, shell=False, cwd='./')
 
+        mem_conf_start = re.compile('^Memory Configuration.*')
+        mem_def = re.compile('^([a-zA-Z0-9_]+) *([0-9a-fA-Fx]+) *([0-9a-fA-Fx]+) *([xwr]+).*')
+        mem_end = re.compile('^Linker script and memory map.*')
+        state = LinkerParserState.LOOKUP
         memories = Memories()
-        for mem_name in cmsis_dev.target_info['memory']:
-            start = int(cmsis_dev.target_info['memory'][mem_name]['start'], 16)
-            size = int(cmsis_dev.target_info['memory'][mem_name]['size'], 16)
-            if ram_regexp.match(mem_name):
-                memories.add_memory(Memory(mem_name, Memory.RAM, start, size))
-            elif rom_regexp.match(mem_name):
-                memories.add_memory(Memory(mem_name, Memory.FLASH, start, size))
-            else:
-                raise Exception('Unknown type of memory')
+        with open('temp.map') as f:
+            linker_lines = f.readlines()
+            for line in linker_lines:
+                if state == LinkerParserState.LOOKUP:
+                    if mem_conf_start.match(line):
+                        state = LinkerParserState.PARSE_SIZE
+                elif state == LinkerParserState.PARSE_SIZE:
+                    match = mem_def.match(line)
+                    if match:
+                        mem_name = match.group(1)
+                        mem_start_size = int(match.group(2), 16)
+                        mem_end_size = int(match.group(3), 16)
+                        mem_flags = match.group(4)
+                        if 'w' in mem_flags:
+                            memories.add_memory(Memory(mem_name, Memory.RAM, mem_start_size, mem_end_size))
+                        else:
+                            memories.add_memory(Memory(mem_name, Memory.FLASH, mem_start_size, mem_end_size))
+                    elif mem_end.match(line):
+                        break
 
         return memories
+
+    def form_target_name(self, target):
+        if target in self.get_official_targets():
+            return target
+        else:
+            return target + ' (unofficial)'
 
 
 class LibraryBuilder(object):
@@ -216,64 +244,11 @@ def add_file_condition(lib_builder, fw_node, cond_list, file_regex, condition_id
         file_condition_node.append(make_node("FilePath", s))
 
 
-def parse_mem_size(size_str):
-    size_reg_ex = re.compile("[( ]*([0-9a-fA-FxKkMm]+) *([+-]) *([0-9a-fA-FxKkMm]+)[) ]*")
-    size_str = size_str.strip('()\n')
-
-    match = size_reg_ex.match(size_str)
-    if match is not None:
-        if match.group(2) == '+':
-            return parse_mem_size(match.group(1)) + parse_mem_size(match.group(3))
-        else:
-            return parse_mem_size(match.group(1)) - parse_mem_size(match.group(3))
-
-    multiplier = 1
-    if size_str[-1].upper() == 'K':
-        multiplier = 1024
-        size_str = size_str[:-1]
-    elif size_str[-1].upper() == 'M':
-        multiplier = 1024 * 1024
-        size_str = size_str[:-1]
-
-    if size_str[0:2] == "0x":
-        return int(size_str, 16) * multiplier
-    else:
-        return int(size_str, 10) * multiplier
-
-
-def parse_linker_script(lds_file):
-    inside_memory_block = False
-    rg_mem_def = re.compile(' *([^ ]+) *\([^()]+\) *: *ORIGIN *= *([^ ,]+), *LENGTH *= *([^/]*)($|/\\*)')
-
-    memories = Memories()
-    with open(lds_file) as f:
-        for line in f:
-            if not inside_memory_block and line.strip() == "MEMORY":
-                inside_memory_block = True
-            elif inside_memory_block and line.strip() == "}":
-                break
-            elif inside_memory_block:
-                match = rg_mem_def.match(line)
-                if match is not None:
-                    mem_name = match.group(1)
-                    mem_start = parse_mem_size(match.group(2))
-                    mem_size = parse_mem_size(match.group(3))
-                    if mem_size == 0:
-                        print('Warning: Zero size of the memory in the linker script')
-                        continue
-                    if 'ram' in mem_name.lower():
-                        memories.add_memory(Memory(mem_name, Memory.RAM, mem_start, mem_size))
-                    elif 'flash' in mem_name.lower():
-                        memories.add_memory(Memory(mem_name, Memory.FLASH, mem_start, mem_size))
-                    else:
-                        print('Warning: Unknown type of the memory')
-    return memories
-
 script_path = join(dirname(__file__))
 
 
 def dump_targets():
-    mbed_info = InfoProvider()
+    mbed_info = InfoProvider('./')
 
     root = ElementTree.Element("SupportedTargets")
     official_targets = ElementTree.SubElement(root, "OfficialTargets")
@@ -292,13 +267,18 @@ def dump_targets():
 
 
 def main(argv):
+    parser = argparse.ArgumentParser(description='BSP file generator for a Mbed platform')
+    parser.add_argument('--tc', default='./')
+    args = parser.parse_args(args=argv)
+
+    mbed_info = InfoProvider(args.tc)
+
+    # TODO: move next argument into the argpase's job
     if 'dump_targets' in argv:
         dump_targets()
         return
     ignore_targets = {
     }
-
-    mbed_info = InfoProvider()
 
     source_condition_map = {}
     header_condition_map = {}
@@ -443,6 +423,7 @@ def main(argv):
 
         mcu = ElementTree.Element('MCU')
         mcu.append(make_node('ID', target))
+        mcu.append(make_node('UserFriendlyName', mbed_info.form_target_name(target)))
         mcu.append(make_node('HierarchicalPath', 'Mbed'))
         mcu.append(make_node('FamilyID', family.find('ID').text))
 
@@ -473,9 +454,9 @@ def main(argv):
 
         flags = append_node(mcu, "CompilationFlags")
         for (node, cond_map) in [[append_node(mcu, "AdditionalSourceFiles"), source_condition_map],
-                             [append_node(mcu, "AdditionalHeaderFiles"), header_condition_map],
-                             [append_node(flags, "IncludeDirectories"), include_dir_condition_map],
-                             [append_node(flags, "PreprocessorMacros"), symbol_condition_map]]:
+                                 [append_node(mcu, "AdditionalHeaderFiles"), header_condition_map],
+                                 [append_node(flags, "IncludeDirectories"), include_dir_condition_map],
+                                 [append_node(flags, "PreprocessorMacros"), symbol_condition_map]]:
             for (filename, targets) in cond_map.items():
                 if len(list(set(targets))) < targets_count and target in targets:
                     node.append(make_node("string", filename))
@@ -502,21 +483,16 @@ def main(argv):
         ElementTree.SubElement(flags, "COMMONFLAGS").text = " ".join(flags_list)
         ElementTree.SubElement(flags, "LinkerScript").text = "$$SYS:BSP_ROOT$$/" + res.linker_script
 
-        memories = mbed_info.get_mem_sizes_mbed(target)
+        memories = mbed_info.get_mem_sizes_linker(res.linker_script)
         if not memories.valid():
-            print('Warning: No FLASH and RAM size for the ' + target + ' in mbed cache')
-            memories = mbed_info.get_mem_sizes_linker(target)
+            print('Using cached memory sizes for target ' + target)
+            memories = mbed_info.get_mem_sizes_cached(target)
         if not memories.valid():
-            print('Warning: No FLASH and RAM size for the ' + target + ' in cached sizes from linker script')
-            if target in mbed_info.get_official_targets():
-                raise Exception('Memory definition for the official targets should be guaranteed correct')
-            memories = parse_linker_script(os.path.join(ROOT, res.linker_script))
-        if not memories.valid():
-            raise Exception('FLASH and\or RAM size is invalid')
+            raise Exception('FLASH and\\or RAM size is invalid')
 
         mcu.append(make_node("RAMSize", str(memories.get_ram_size())))
         mcu.append(make_node("FLASHSize", str(memories.get_flash_size())))
-
+        print('3')
         mem_list = ElementTree.SubElement(ElementTree.SubElement(mcu, "MemoryMap"), "Memories")
         for mem in memories.get_memories():
             mem_el = ElementTree.SubElement(mem_list, "MCUMemory")
@@ -561,7 +537,8 @@ def main(argv):
             [make_node("string", fn) for (fn, cond) in lib.include_dir_condition_map.items() if
              len(cond) == len(lib.SupportedTargets)])
         ElementTree.SubElement(fw, "AdditionalPreprocessorMacros").extend(
-            [make_node("string", fn) for fn in lib.macros_condition_map.keys()])
+            [make_node("string", fn) for (fn, cond) in lib.macros_condition_map.items() if
+             len(cond) == len(lib.SupportedTargets)])
         if len(lib.DependencyIDs) > 0:
             ElementTree.SubElement(fw, "RequiredFrameworks").extend(
                 [make_node("string", "com.sysprogs.arm.mbed." + id) for id in lib.DependencyIDs])

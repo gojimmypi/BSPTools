@@ -1,299 +1,54 @@
 {
-	"RZ_A1H":
+	"ARCH_BLE":
 	{
 		"memories": {
-			"ROM": {
+			"FLASH": {
 				"type": "FLASH",
-				"start": 0,
-				"size": 33554432
-			},
-			"BOOT_LOADER": {
-				"type": "FLASH",
-				"start": 402653184,
-				"size": 16384
-			},
-			"SFLASH": {
-				"type": "FLASH",
-				"start": 402669568,
-				"size": 134201344
-			},
-			"L_TTB": {
-				"type": "RAM",
-				"start": 536870912,
-				"size": 16384
+				"start": 114688,
+				"size": 147456
 			},
 			"RAM": {
 				"type": "RAM",
-				"start": 537001984,
-				"size": 7340032
-			},
-			"RAM_NC": {
-				"type": "RAM",
-				"start": 546308096,
-				"size": 1048576
+				"start": 536881152,
+				"size": 6144
 			}
 		},
-		"ram_size": 8388608,
-		"flash_size": 167772160
-    },
-    "DISCO_L476VG":
-	{
-		"memories": {
-			"FLASH": {
-				"type": "FLASH",
-				"start": 134217728,
-				"size": 1048576
-			},
-			"SRAM2": {
-				"type": "RAM",
-				"start": 268435848,
-				"size": 32376
-			},
-			"SRAM1": {
-				"type": "RAM",
-				"start": 536870912,
-				"size": 98304
-			}
-		},
-		"ram_size": 130680,
-		"flash_size": 1048576
-    },
-    "XDOT_L151CC":
-	{
-		"memories": {
-			"FLASH": {
-				"type": "FLASH",
-				"start": 134217728,
-				"size": 262144
-			},
-			"RAM": {
-				"type": "RAM",
-				"start": 536871228,
-				"size": 32452
-			}
-		},
-		"ram_size": 32452,
-		"flash_size": 262144
-    },
-    "NUCLEO_L486RG":
-	{
-		"memories": {
-			"FLASH": {
-				"type": "FLASH",
-				"start": 134217728,
-				"size": 1048576
-			},
-			"SRAM2": {
-				"type": "RAM",
-				"start": 268435848,
-				"size": 32376
-			},
-			"SRAM1": {
-				"type": "RAM",
-				"start": 536870912,
-				"size": 98304
-			}
-		},
-		"ram_size": 130680,
-		"flash_size": 1048576
-    },
-    "MAX32620HSP":
-	{
-		"memories": {
-			"FLASH": {
-				"type": "FLASH",
-				"start": 0,
-				"size": 2097152
-			},
-			"RAM": {
-				"type": "RAM",
-				"start": 536870912,
-				"size": 262144
-			}
-		},
-		"ram_size": 262144,
-		"flash_size": 2097152
-    },
-    "NUCLEO_L476RG":
-	{
-		"memories": {
-			"FLASH": {
-				"type": "FLASH",
-				"start": 134217728,
-				"size": 1048576
-			},
-			"SRAM2": {
-				"type": "RAM",
-				"start": 268435848,
-				"size": 32376
-			},
-			"SRAM1": {
-				"type": "RAM",
-				"start": 536870912,
-				"size": 98304
-			}
-		},
-		"ram_size": 130680,
-		"flash_size": 1048576
-    },
-    "NRF51_DONGLE_LEGACY":
-	{
-		"memories": {
-			"FLASH": {
-				"type": "FLASH",
-				"start": 110592,
-				"size": 151552
-			},
-			"SRAM2": {
-				"type": "RAM",
-				"start": 536882936,
-				"size": 20744
-			}
-		},
-		"ram_size": 22528,
+		"ram_size": 6144,
 		"flash_size": 147456
     },
-    "VK_RZ_A1H":
-	{
-		"memories": {
-			"ROM": {
-				"type": "FLASH",
-				"start": 0,
-				"size": 33554432
-			},
-			"SFLASH_DUAL": {
-				"type": "FLASH",
-				"start": 402784256,
-				"size": 33423360
-			},
-			"L_TTB": {
-				"type": "FLASH",
-				"start": 536870912,
-				"size": 16384
-			},
-			"RAM": {
-				"type": "RAM",
-				"start": 537001984,
-				"size": 7340032
-			},
-			"RAM_NC": {
-				"type": "RAM",
-				"start": 546308096,
-				"size": 1048576
-			},
-			"SDRAM": {
-				"type": "RAM",
-				"start": 134217728,
-				"size": 33554432
-			}
-		},
-		"ram_size": 41943040,
-		"flash_size": 66994176
-    },
-    "NCS36510":
-	{
-		"memories": {
-			"VECTORS": {
-				"type": "FLASH",
-				"start": 12288,
-				"size": 144
-			},
-			"FLASH": {
-				"type": "FLASH",
-				"start": 12432,
-				"size": 323440
-			},
-			"RAM": {
-				"type": "RAM",
-				"start": 1073692672,
-				"size": 49152
-			}
-		},
-		"ram_size": 49152,
-		"flash_size": 323584
-    },
-    "MAXWSNENV":
+    "RBLAB_NRF51822":
 	{
 		"memories": {
 			"FLASH": {
 				"type": "FLASH",
-				"start": 0,
-				"size": 262144
+				"start": 114688,
+				"size": 147456
 			},
 			"RAM": {
 				"type": "RAM",
-				"start": 536870912,
-				"size": 32768
+				"start": 536881152,
+				"size": 6144
 			}
 		},
-		"ram_size": 32768,
-		"flash_size": 262144
+		"ram_size": 6144,
+		"flash_size": 147456
     },
-    "MAX32600MBED":
+    "RBLAB_BLENANO_BOOT":
 	{
 		"memories": {
 			"FLASH": {
 				"type": "FLASH",
-				"start": 0,
-				"size": 262144
+				"start": 114688,
+				"size": 147456
 			},
 			"RAM": {
 				"type": "RAM",
-				"start": 536870912,
-				"size": 32768
+				"start": 536881152,
+				"size": 6144
 			}
 		},
-		"ram_size": 32768,
-		"flash_size": 262144
-    },
-    "ARM_BEETLE_SOC":
-	{
-		"memories": {
-			"VECTORS": {
-				"type": "FLASH",
-				"start": 0,
-				"size": 1024
-			},
-			"FLASH": {
-				"type": "FLASH",
-				"start": 1024,
-				"size": 261120
-			},
-			"RAM": {
-				"type": "RAM",
-				"start": 536870912,
-				"size": 32768
-			}
-		},
-		"ram_size": 32768,
-		"flash_size": 262144
-    },
-    "LPC1549":
-	{
-		"memories": {
-			"FLASH": {
-				"type": "FLASH",
-				"start": 0,
-				"size": 262144
-			},
-			"Ram0_16": {
-				"type": "RAM",
-				"start": 33554688,
-				"size": 16128
-			},
-			"Ram1_16": {
-				"type": "RAM",
-				"start": 33570816,
-				"size": 16384
-			},
-			"Ram2_4": {
-				"type": "RAM",
-				"start": 33587200,
-				"size": 4096
-			}
-		},
-		"ram_size": 36608,
-		"flash_size": 262144
+		"ram_size": 6144,
+		"flash_size": 147456
     },
     "RBLAB_BLENANO":
 	{
@@ -312,22 +67,22 @@
 		"ram_size": 6144,
 		"flash_size": 147456
     },
-    "NRF51_MICROBIT":
+    "NRF51822_BOOT":
 	{
 		"memories": {
 			"FLASH": {
 				"type": "FLASH",
-				"start": 98304,
-				"size": 163840
+				"start": 114688,
+				"size": 147456
 			},
 			"RAM": {
 				"type": "RAM",
-				"start": 536879104,
-				"size": 8192
+				"start": 536881152,
+				"size": 6144
 			}
 		},
-		"ram_size": 8192,
-		"flash_size": 163840
+		"ram_size": 6144,
+		"flash_size": 147456
     },
     "WALLBOT_BLE":
 	{
@@ -346,113 +101,260 @@
 		"ram_size": 6144,
 		"flash_size": 147456
     },
-    "NUCLEO_F756ZG":
+    "WALLBOT_BLE_OTA":
 	{
 		"memories": {
 			"FLASH": {
 				"type": "FLASH",
-				"start": 134217728,
-				"size": 1048576
+				"start": 114688,
+				"size": 147456
 			},
 			"RAM": {
 				"type": "RAM",
-				"start": 536871368,
-				"size": 327224
+				"start": 536881152,
+				"size": 6144
 			}
 		},
-		"ram_size": 327224,
-		"flash_size": 1048576
+		"ram_size": 6144,
+		"flash_size": 147456
     },
-    "KL82Z":
-	{
-		"memories": {
-			"m_interrupts": {
-				"type": "FLASH",
-				"start": 0,
-				"size": 320
-			},
-			"m_bootloader_config": {
-				"type": "FLASH",
-				"start": 960,
-				"size": 64
-			},
-			"m_flash_config": {
-				"type": "FLASH",
-				"start": 1024,
-				"size": 16
-			},
-			"m_text": {
-				"type": "FLASH",
-				"start": 1040,
-				"size": 130032
-			},
-			"m_data": {
-				"type": "RAM",
-				"start": 536846336,
-				"size": 98304
-			},
-			"m_usb_sram": {
-				"type": "RAM",
-				"start": 1074790400,
-				"size": 2048
-			}
-		},
-		"ram_size": 100352,
-		"flash_size": 130432
-    },
-    "NRF51_DONGLE":
+    "NRF51822_OTA":
 	{
 		"memories": {
 			"FLASH": {
 				"type": "FLASH",
-				"start": 110592,
-				"size": 151552
+				"start": 114688,
+				"size": 147456
 			},
 			"RAM": {
 				"type": "RAM",
-				"start": 536882936,
-				"size": 20744
+				"start": 536881152,
+				"size": 6144
 			}
 		},
-		"ram_size": 20744,
-		"flash_size": 151552
+		"ram_size": 6144,
+		"flash_size": 147456
     },
-    "K82F":
+    "RBLAB_NRF51822_OTA":
 	{
 		"memories": {
-			"m_interrupts": {
+			"FLASH": {
 				"type": "FLASH",
-				"start": 0,
-				"size": 960
+				"start": 114688,
+				"size": 147456
 			},
-			"m_bootloader_config": {
-				"type": "FLASH",
-				"start": 960,
-				"size": 64
-			},
-			"m_flash_config": {
-				"type": "FLASH",
-				"start": 1024,
-				"size": 16
-			},
-			"m_text": {
-				"type": "FLASH",
-				"start": 1040,
-				"size": 261104
-			},
-			"m_data": {
+			"RAM": {
 				"type": "RAM",
-				"start": 536805376,
-				"size": 65536
-			},
-			"m_data_2": {
-				"type": "RAM",
-				"start": 536870912,
-				"size": 196608
+				"start": 536881152,
+				"size": 6144
 			}
 		},
-		"ram_size": 262144,
-		"flash_size": 262144
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "NRF51822_Y5_MBUG":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "NRF51822":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "ARCH_BLE_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "SEEED_TINY_BLE":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "RBLAB_NRF51822_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "WALLBOT_BLE_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "SEEED_TINY_BLE_OTA":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "ARCH_LINK_OTA":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "NRF51_MICROBIT_B_OTA":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "NRF51_MICROBIT_B_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "SEEED_TINY_BLE_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "ARCH_LINK":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
     },
     "NRF51_MICROBIT_B":
 	{
@@ -471,56 +373,447 @@
 		"ram_size": 6144,
 		"flash_size": 147456
     },
-    "MAX32625NEXPAQ":
+    "RBLAB_BLENANO_OTA":
 	{
 		"memories": {
 			"FLASH": {
 				"type": "FLASH",
-				"start": 65536,
-				"size": 458752
+				"start": 114688,
+				"size": 147456
 			},
 			"RAM": {
 				"type": "RAM",
-				"start": 536883456,
-				"size": 151296
+				"start": 536881152,
+				"size": 6144
 			}
 		},
-		"ram_size": 151296,
-		"flash_size": 458752
+		"ram_size": 6144,
+		"flash_size": 147456
     },
-    "SSCI824":
+    "ARCH_LINK_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "ARCH_BLE_OTA":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "HRM1017":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "HRM1017_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "HRM1017_OTA":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 6144
+			}
+		},
+		"ram_size": 6144,
+		"flash_size": 147456
+    },
+    "TY51822R3":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 110592,
+				"size": 151552
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536882936,
+				"size": 20744
+			}
+		},
+		"ram_size": 20744,
+		"flash_size": 151552
+    },
+    "NRF51_DONGLE":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 110592,
+				"size": 151552
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536882936,
+				"size": 20744
+			}
+		},
+		"ram_size": 20744,
+		"flash_size": 151552
+    },
+    "NRF51_DK":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 110592,
+				"size": 151552
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536882936,
+				"size": 20744
+			}
+		},
+		"ram_size": 20744,
+		"flash_size": 151552
+    },
+    "MTM_MTCONNECT04S_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "TY51822R3_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "TY51822R3_OTA":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "NRF51_DK_LEGACY":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "DELTA_DFCM_NNN40_OTA":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "NRF51_DONGLE_LEGACY":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "DELTA_DFCM_NNN40":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "NRF51_DK_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "DELTA_DFCM_NNN40_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "NRF51_DK_OTA":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "NRF51_DONGLE_OTA":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "MTM_MTCONNECT04S_OTA":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "NRF51_DONGLE_BOOT":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "MTM_MTCONNECT04S":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 114688,
+				"size": 147456
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536881152,
+				"size": 22528
+			}
+		},
+		"ram_size": 22528,
+		"flash_size": 147456
+    },
+    "EFM32PG_STK3401":
 	{
 		"memories": {
 			"FLASH": {
 				"type": "FLASH",
 				"start": 0,
-				"size": 32768
-			},
-			"RAM": {
-				"type": "RAM",
-				"start": 268435648,
-				"size": 8000
-			}
-		},
-		"ram_size": 8000,
-		"flash_size": 32768
-    },
-    "MAX32625MBED":
-	{
-		"memories": {
-			"FLASH": {
-				"type": "FLASH",
-				"start": 0,
-				"size": 524288
+				"size": 262144
 			},
 			"RAM": {
 				"type": "RAM",
 				"start": 536870912,
-				"size": 163840
+				"size": 32768
 			}
 		},
-		"ram_size": 163840,
-		"flash_size": 524288
+		"ram_size": 32768,
+		"flash_size": 262144
+    },
+    "EFM32WG_STK3800":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 262144
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 32768
+			}
+		},
+		"ram_size": 32768,
+		"flash_size": 262144
+    },
+    "EFM32LG_STK3600":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 262144
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 32768
+			}
+		},
+		"ram_size": 32768,
+		"flash_size": 262144
     },
     "SARA_NBIOT_EVK":
 	{
@@ -535,11 +828,6 @@
 				"start": 192,
 				"size": 130880
 			},
-			"RAM_VECTORS": {
-				"type": "RAM",
-				"start": 0,
-				"size": 128
-			},
 			"RAM": {
 				"type": "RAM",
 				"start": 16777344,
@@ -547,12 +835,62 @@
 			},
 			"IPC_MAILBOX": {
 				"type": "RAM",
-				"start": 16756864,
+				"start": 16797568,
 				"size": 256
 			}
 		},
-		"ram_size": 20608,
+		"ram_size": 20480,
 		"flash_size": 131072
+    },
+    "EFM32HG_STK3400":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 65536
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 8192
+			}
+		},
+		"ram_size": 8192,
+		"flash_size": 65536
+    },
+    "EFM32ZG_STK3200":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 32768
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 4096
+			}
+		},
+		"ram_size": 4096,
+		"flash_size": 32768
+    },
+    "EFM32GG_STK3700":
+	{
+		"memories": {
+			"FLASH": {
+				"type": "FLASH",
+				"start": 0,
+				"size": 1048576
+			},
+			"RAM": {
+				"type": "RAM",
+				"start": 536870912,
+				"size": 131072
+			}
+		},
+		"ram_size": 131072,
+		"flash_size": 1048576
     }
-
 }
