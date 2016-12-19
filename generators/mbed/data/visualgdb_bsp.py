@@ -1,10 +1,8 @@
-import copy
 import json
 import os
 import re
 import argparse
 import sys
-import gc
 import subprocess
 import xml.etree.ElementTree as ElementTree
 from os.path import join, dirname, basename
@@ -15,7 +13,6 @@ import tools.config
 import tools.libraries
 import tools.project
 import tools.toolchains
-import tools.export.cmsis as cmsis
 from tools.export import EXPORTERS
 from tools.libraries import LIBRARIES
 from tools.paths import MBED_HEADER
@@ -25,7 +22,6 @@ from tools.settings import ROOT
 # sys.path.insert(0, FILE_ROOT)
 
 GccExporter = EXPORTERS['gcc_arm']
-
 
 class Memory(object):
     FLASH = 'FLASH'
@@ -38,8 +34,6 @@ class Memory(object):
         self.__type = mem_type
         self.__start = start
         self.__size = size
-        if size == 0:
-            raise Exception(mem_type + ' memory size is 0')
 
     def get_name(self):
         return self.__name
@@ -63,6 +57,8 @@ class Memories(object):
         self.__ram_valid = False
 
     def add_memory(self, mem):
+        if mem.get_size() == 0:
+            return
         self.__memories.append(mem)
         if mem.get_type() == Memory.FLASH:
             self.__flash_valid = True
@@ -95,7 +91,6 @@ class LinkerParserState:
 class InfoProvider(object):
     __official_targets = set()
     __all_targets = set()
-    __sizes_from_linker = None
 
     def __init__(self, toolchain_bin_path):
         self.__toolchain_bin_path = toolchain_bin_path
@@ -122,22 +117,6 @@ class InfoProvider(object):
     def get_all_targets(self):
         return self.__all_targets
 
-    def get_mem_sizes_cached(self, target):
-        memories = Memories()
-        if target in self.__sizes_from_linker:
-            ram_size = self.__sizes_from_linker[target]['ram_size']
-            flash_size = self.__sizes_from_linker[target]['flash_size']
-            for mem_name in self.__sizes_from_linker[target]['memories']:
-                mem = self.__sizes_from_linker[target]['memories'][mem_name]
-                if mem['type'] == Memory.RAM:
-                    memories.add_memory(Memory(mem_name, Memory.RAM, int(mem['start']), int(mem['size'])))
-                elif mem['type'] == Memory.FLASH:
-                    memories.add_memory(Memory(mem_name, Memory.FLASH, int(mem['start']), int(mem['size'])))
-                else:
-                    raise Exception('Invalid memory type in the linker sizes cache for the target ' + target)
-
-        return memories
-
     def get_mem_sizes_linker(self, linker_script):
         linker_path = os.path.join(self.__toolchain_bin_path, 'arm-eabi-gcc')
         null_pipe = open(os.devnull, 'w')
@@ -149,25 +128,28 @@ class InfoProvider(object):
         mem_end = re.compile('^Linker script and memory map.*')
         state = LinkerParserState.LOOKUP
         memories = Memories()
-        with open('temp.map') as f:
-            linker_lines = f.readlines()
-            for line in linker_lines:
-                if state == LinkerParserState.LOOKUP:
-                    if mem_conf_start.match(line):
-                        state = LinkerParserState.PARSE_SIZE
-                elif state == LinkerParserState.PARSE_SIZE:
-                    match = mem_def.match(line)
-                    if match:
-                        mem_name = match.group(1)
-                        mem_start_size = int(match.group(2), 16)
-                        mem_end_size = int(match.group(3), 16)
-                        mem_flags = match.group(4)
-                        if 'w' in mem_flags:
-                            memories.add_memory(Memory(mem_name, Memory.RAM, mem_start_size, mem_end_size))
-                        else:
-                            memories.add_memory(Memory(mem_name, Memory.FLASH, mem_start_size, mem_end_size))
-                    elif mem_end.match(line):
-                        break
+        try:
+            with open('temp.map') as f:
+                linker_lines = f.readlines()
+                for line in linker_lines:
+                    if state == LinkerParserState.LOOKUP:
+                        if mem_conf_start.match(line):
+                            state = LinkerParserState.PARSE_SIZE
+                    elif state == LinkerParserState.PARSE_SIZE:
+                        match = mem_def.match(line)
+                        if match:
+                            mem_name = match.group(1)
+                            mem_start_size = int(match.group(2), 16)
+                            mem_end_size = int(match.group(3), 16)
+                            mem_flags = match.group(4)
+                            if 'w' in mem_flags:
+                                memories.add_memory(Memory(mem_name, Memory.RAM, mem_start_size, mem_end_size))
+                            elif len(mem_flags) != 0:
+                                memories.add_memory(Memory(mem_name, Memory.FLASH, mem_start_size, mem_end_size))
+                        elif mem_end.match(line):
+                            break
+        except IOError:
+            print('Got IO trouble with script: ' + linker_script)
 
         return memories
 
@@ -348,25 +330,24 @@ def main(argv):
             sources = lib['source_dir']
             if isinstance(sources, str):
                 sources = [sources]
-            for src in sources:
-                lib_toolchain = ba.prepare_toolchain(ROOT, target, 'GCC_ARM')
-                # ignore rtx while scanning rtos
-                exclude_paths = [os.path.join(ROOT, 'rtos', 'rtx')] if lib['id'] != 'rtos' else []
-                lib_res = lib_toolchain.scan_resources(src, exclude_paths=exclude_paths)
-                lib_toolchain.config.load_resources(lib_res)
-                lib_macros = lib_toolchain.config.config_to_macros(lib_toolchain.config.get_config_data())
-                new_lib = copy.copy(lib)
-                macros = new_lib.get('macros', None)
-                if macros is None:
-                    macros = lib_macros
-                else:
-                    macros += lib_macros
-                new_lib['macros'] = macros
-                lib_res.relative_to(ROOT, False)
-                lib_res.win_to_unix()
-                lib_builder_map.setdefault(new_lib['id'], LibraryBuilder(new_lib, target)).append_resources(
-                    target, lib_res, macros)
-                src_dir_to_lib_map[src] = new_lib['id']
+
+            lib_toolchain = ba.prepare_toolchain(ROOT, target, 'GCC_ARM')
+            # ignore rtx while scanning rtos
+            exclude_paths = [os.path.join(ROOT, 'rtos', 'rtx')] if lib['id'] == 'rtos' else []
+            lib_res = lib_toolchain.scan_resources(sources[0], exclude_paths=exclude_paths)
+            for src in sources[1:]:
+                lib_res += lib_toolchain.scan_resources(src, exclude_paths=exclude_paths)
+                src_dir_to_lib_map[src] = lib['id']
+
+            lib_toolchain.config.load_resources(lib_res)
+            lib_res.relative_to(ROOT, False)
+            lib_res.win_to_unix()
+            macros = []
+            #macros += lib_toolchain.config.config_to_macros(lib_toolchain.config.get_config_data())
+            macros += lib.get('macros', [])
+            new_lib = {'id': lib['id'], 'macros': macros, 'dependencies': lib['dependencies']}
+            lib_builder_map.setdefault(new_lib['id'], LibraryBuilder(new_lib, target)).append_resources(
+                target, lib_res, macros)
 
         # Add specific features as a library
         features_path = os.path.join(ROOT, 'features')
@@ -411,14 +392,13 @@ def main(argv):
     # Set flags different for each target
     for target in GccExporter.TARGETS:
         res = resources_map.get(target, None)
-        if res is None:
-            print('Target ignored: ' + target + ': No resources')
+
+        if res is None or res.linker_script is None or target in ignore_targets:
+            print('Target ignored: ' + target + ': The target has no crucial parameter.')
             continue
-        if res.linker_script is None:
-            print('Target ignored: ' + target + ': No linker script')
-            continue
-        if target in ignore_targets:
-            print('Target ' + target + ' ignored: ' + ignore_targets[target])
+        memories = mbed_info.get_mem_sizes_linker(res.linker_script)
+        if not memories.valid():
+            print('Target ignored: ' + target + ': The target has no valid memory')
             continue
 
         mcu = ElementTree.Element('MCU')
@@ -483,16 +463,8 @@ def main(argv):
         ElementTree.SubElement(flags, "COMMONFLAGS").text = " ".join(flags_list)
         ElementTree.SubElement(flags, "LinkerScript").text = "$$SYS:BSP_ROOT$$/" + res.linker_script
 
-        memories = mbed_info.get_mem_sizes_linker(res.linker_script)
-        if not memories.valid():
-            print('Using cached memory sizes for target ' + target)
-            memories = mbed_info.get_mem_sizes_cached(target)
-        if not memories.valid():
-            raise Exception('FLASH and\\or RAM size is invalid')
-
         mcu.append(make_node("RAMSize", str(memories.get_ram_size())))
         mcu.append(make_node("FLASHSize", str(memories.get_flash_size())))
-        print('3')
         mem_list = ElementTree.SubElement(ElementTree.SubElement(mcu, "MemoryMap"), "Memories")
         for mem in memories.get_memories():
             mem_el = ElementTree.SubElement(mem_list, "MCUMemory")
@@ -542,7 +514,6 @@ def main(argv):
         if len(lib.DependencyIDs) > 0:
             ElementTree.SubElement(fw, "RequiredFrameworks").extend(
                 [make_node("string", "com.sysprogs.arm.mbed." + id) for id in lib.DependencyIDs])
-        # ET.SubElement(ET.SubElement(fw, "AdditionalSystemVars"), "SysVarEntry").extend([make_node("Key", "com.sysprogs.arm.mbed." + lib.ID + ".included"), make_node("Value", "1")])
 
         for (fn, cond) in lib.source_condition_map.items() + lib.header_condition_map.items():
             if len(cond) == len(lib.SupportedTargets):
@@ -570,8 +541,7 @@ def main(argv):
             ElementTree.SubElement(cond_list_node, "Condition", {"xsi:type": "MatchesRegex"}).extend(
                 [make_node("Expression", "$$SYS:MCU_ID$$"), make_node("Regex", "|".join(cond))])
             flags_node = ElementTree.SubElement(flag_cond_node, "Flags")
-            include_dir_list_node = ElementTree.SubElement(flags_node, "IncludeDirectories")
-            include_dir_list_node.append(make_node("string", inc_dir))
+            ElementTree.SubElement(flags_node, "IncludeDirectories").append(make_node("string", inc_dir))
 
         for (macro, cond) in lib.macros_condition_map.items():
             if len(cond) == len(lib.SupportedTargets):
@@ -586,8 +556,7 @@ def main(argv):
             ElementTree.SubElement(macro_list_node, "Condition", {"xsi:type": "MatchesRegex"}).extend(
                 [make_node("Expression", "$$SYS:MCU_ID$$"), make_node("Regex", "|".join(cond))])
             macro_flags_node = ElementTree.SubElement(macro_cond_node, 'Flags')
-            macros_node = ElementTree.SubElement(macro_flags_node, 'PreprocessorMacros')
-            macros_node.append(make_node('string', macro))
+            ElementTree.SubElement(macro_flags_node, 'PreprocessorMacros').append(make_node('string', macro))
 
     samples = xml.find('Examples')
     for (root, dirs, files) in os.walk(os.path.join(ROOT, 'samples')):

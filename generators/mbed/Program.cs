@@ -1,4 +1,4 @@
-﻿using BSPEngine;
+using BSPEngine;
 using BSPGenerationTools;
 using Microsoft.Win32;
 using StandaloneBSPValidator;
@@ -69,15 +69,18 @@ namespace mbed
                     Directory.Delete(sampleDir, true);
                 PathTools.CopyDirectoryRecursive(Path.Combine(dataDir, "samples"), sampleDir);
 
-                ProcessStartInfo bspGenInfo = new ProcessStartInfo(pythonExe, Path.Combine(dataDir, "visualgdb_bsp.py") + " --alltargets");
+                ProcessStartInfo bspGenInfo = new ProcessStartInfo(pythonExe, Path.Combine(dataDir, "visualgdb_bsp.py") + " --tc B:/Programs/SysGCC/arm-eabi/bin");
                 bspGenInfo.UseShellExecute = false;
                 bspGenInfo.EnvironmentVariables["PYTHONPATH"] = mbedRoot;
+                bspGenInfo.WorkingDirectory = mbedRoot;
                 proc = Process.Start(bspGenInfo);
                 proc.WaitForExit();
 
                 if (proc.ExitCode != 0)
                     throw new Exception("BSP generator exited with code " + proc.ExitCode);
             }
+
+       
 
             File.Copy(Path.Combine(dataDir, "stubs.cpp"), Path.Combine(mbedRoot, "stubs.cpp"), true);
             Dictionary<string, string> mcuDefs = new Dictionary<string, string>();
