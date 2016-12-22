@@ -108,9 +108,6 @@ class InfoProvider(object):
         self.__official_targets = merged
         self.__all_targets = set(GccExporter.TARGETS)
 
-        with open(os.path.join(script_path, 'sizes_from_linker.json')) as linker_data:
-            self.__sizes_from_linker = json.load(linker_data)
-
     def get_official_targets(self):
         return self.__official_targets
 
